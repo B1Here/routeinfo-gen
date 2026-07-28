@@ -12,6 +12,7 @@ from routeinfoeditor.nsmbw.routeinfodata import point_flags
 from routeinfoeditor.nsmbw.routeinfoutils import (
     is_flag_point,
     is_level_point,
+    is_point,
 )
 
 
@@ -109,7 +110,7 @@ class RouteInfoValidateOperator(bpy.types.Operator):
                 if flag and flag not in point_flags:
                     self.report(
                         {"WARNING"},
-                        f'Bone {bone.name} has a flag "{flag}" that is not a valid'
+                        f'Bone "{bone.name}" has a flag "{flag}" that is not a valid'
                         + "point flag.",
                     )
                     warnings += 1
@@ -118,43 +119,83 @@ class RouteInfoValidateOperator(bpy.types.Operator):
         #  existing bones
         for bone in filter(lambda b: is_level_point(b.name), bones):
             point_settings = bone.route_info_point_settings
-            for level in split_if_contains(point_settings.unlocked_levels, ","):
-                if level and level not in bone_names:
-                    self.report(
-                        {"WARNING"},
-                        f"Bone {bone.name} has an unlocked level {level} that does"
-                        + "not exist.",
-                    )
-                    warnings += 1
-
-            for bone_name in split_if_contains(point_settings.unlocked_bones, ","):
-                if bone_name and bone_name not in bone_names:
-                    self.report(
-                        {"WARNING"},
-                        f"Bone {bone.name} has an unlocked bone {bone_name} that does"
-                        + "not exist.",
-                    )
-                    warnings += 1
-
-            for level in split_if_contains(
-                point_settings.unlocked_levels_secret_exit, ","
+            for level in filter(
+                bool, split_if_contains(point_settings.unlocked_levels, ",")
             ):
-                if level and level not in bone_names:
+                if not is_level_point(level):
                     self.report(
                         {"WARNING"},
-                        f"Bone {bone.name} has an unlocked secret exit level {level}"
-                        + "that does not exist.",
+                        f'Bone "{bone.name}" has an unlocked level "{level}" that is'
+                        + " not a valid level point.",
+                    )
+                    warnings += 1
+                    continue
+
+                if level not in bone_names:
+                    self.report(
+                        {"WARNING"},
+                        f'Bone "{bone.name}" has an unlocked level "{level}" that'
+                        + " does not exist.",
                     )
                     warnings += 1
 
-            for bone_name in split_if_contains(
-                point_settings.unlocked_bones_secret_exit, ","
+            for bone_name in filter(
+                bool, split_if_contains(point_settings.unlocked_bones, ",")
             ):
-                if bone_name and bone_name not in bone_names:
+                if is_point(bone_name):
                     self.report(
                         {"WARNING"},
-                        f"Bone {bone.name} has an unlocked secret exit bone {bone_name}"
-                        + " that does not exist.",
+                        f'Bone "{bone.name}" has an unlocked bone "{bone_name}" that'
+                        + " is a point.",
+                    )
+                    warnings += 1
+                    continue
+
+                if bone_name not in bone_names:
+                    self.report(
+                        {"WARNING"},
+                        f'Bone "{bone.name}" has an unlocked bone "{bone_name}" that'
+                        + " does not exist.",
+                    )
+                    warnings += 1
+
+            for level in filter(
+                bool, split_if_contains(point_settings.unlocked_levels_secret_exit, ",")
+            ):
+                if not is_level_point(level):
+                    self.report(
+                        {"WARNING"},
+                        f'Bone "{bone.name}" has an unlocked secret exit level'
+                        + f' "{level}" that is not a valid level point.',
+                    )
+                    warnings += 1
+                    continue
+
+                if level not in bone_names:
+                    self.report(
+                        {"WARNING"},
+                        f'Bone "{bone.name}" has an unlocked secret exit level'
+                        + f' "{level}" that does not exist.',
+                    )
+                    warnings += 1
+
+            for bone_name in filter(
+                bool, split_if_contains(point_settings.unlocked_bones_secret_exit, ",")
+            ):
+                if is_point(bone_name):
+                    self.report(
+                        {"WARNING"},
+                        f'Bone "{bone.name}" has an unlocked secret exit bone'
+                        + f' "{bone_name}" that is a point.',
+                    )
+                    warnings += 1
+                    continue
+
+                if bone_name not in bone_names:
+                    self.report(
+                        {"WARNING"},
+                        f'Bone "{bone.name}" has an unlocked secret exit bone'
+                        + f' "{bone_name}" that does not exist.',
                     )
                     warnings += 1
 
