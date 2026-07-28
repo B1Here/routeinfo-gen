@@ -6,7 +6,7 @@ bl_info = {
     "name": "RouteInfo Editor",
     "author": "B1Here",
     "blender": (3, 3, 0),
-    "version": (1, 1, 0),
+    "version": (1, 1, 1),
     "category": "Interface",
     "description": "Allows editing and generating NSMBW RouteInfo CSV files from armatures directly.",
 }
