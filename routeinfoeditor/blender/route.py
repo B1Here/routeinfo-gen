@@ -1,8 +1,8 @@
-import bpy
-
 import re
 
-from routeinfoeditor.blender.common import __is_defined__
+import bpy
+
+from routeinfoeditor.blender.common import is_defined
 from routeinfoeditor.nsmbw.routeinfodata import route_animations
 
 
@@ -60,9 +60,9 @@ class RouteInfoRoutePanel(bpy.types.Panel):
     def poll(cls, context) -> bool:
         pattern = re.compile(r"^CS_W\d[ab]?$")
         if (
-            not __is_defined__(context.object)
+            not is_defined(context.object)
             or context.object.type != "ARMATURE"
-            or not __is_defined__(context.armature)
+            or not is_defined(context.armature)
         ):
             return False
 
@@ -74,12 +74,12 @@ class RouteInfoRoutePanel(bpy.types.Panel):
 
     def draw(self, context) -> None:
         layout = self.layout
-        if not __is_defined__(layout):
+        if not is_defined(layout):
             return
         layout.use_property_split = True
         layout.use_property_decorate = False
         armature = context.armature
-        if not __is_defined__(armature):
+        if not is_defined(armature):
             return
         route_settings = armature.route_info_route_settings
         row = layout.row()

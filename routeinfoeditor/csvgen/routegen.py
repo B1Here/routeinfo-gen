@@ -1,4 +1,3 @@
-from routeinfoeditor.blender.common import __is_defined__
 from routeinfoeditor.csvgen.abstractcsvgen import AbstractCsvGen
 
 
@@ -8,7 +7,10 @@ class RouteCsvGen(AbstractCsvGen):
 
         csv = ""
         for route in routes:
-            csv += f"{route.name},{route.animation},{self._csv_array_guard(route.flags)}\r\n"
+            csv += (
+                f"{route.name},{route.animation},"
+                + f"{self._csv_array_guard(route.flags)}\r\n"
+            )
 
         return csv
 

@@ -1,7 +1,7 @@
-import bpy
-
-from abc import ABC, abstractmethod
 import re
+from abc import ABC, abstractmethod
+
+import bpy
 
 
 class AbstractCsvGen(ABC):

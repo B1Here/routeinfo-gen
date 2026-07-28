@@ -1,10 +1,10 @@
 import bpy
 
-from routeinfoeditor.blender.armatureutils import __get_bone__
-from routeinfoeditor.blender.common import __is_defined__
+from routeinfoeditor.blender.armatureutils import get_bone
+from routeinfoeditor.blender.common import is_defined
 from routeinfoeditor.nsmbw.routeinfoutils import (
-    __is_flag_point__,
-    __is_level_point__,
+    is_flag_point,
+    is_level_point,
 )
 
 
@@ -55,19 +55,19 @@ class RouteInfoPointPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context) -> bool:
-        bone = __get_bone__(context)
-        if not __is_defined__(bone):
+        bone = get_bone(context)
+        if not is_defined(bone):
             return False
 
-        return __is_level_point__(bone.name) or __is_flag_point__(bone.name)
+        return is_level_point(bone.name) or is_flag_point(bone.name)
 
     def draw(self, context) -> None:
         layout = self.layout
-        if not __is_defined__(layout):
+        if not is_defined(layout):
             return
 
-        bone = __get_bone__(context)
-        if not __is_defined__(bone):
+        bone = get_bone(context)
+        if not is_defined(bone):
             return
 
         layout.use_property_split = True
@@ -76,7 +76,7 @@ class RouteInfoPointPanel(bpy.types.Panel):
         point_settings = bone.route_info_point_settings
         layout.prop(bone, "name")
         layout.prop(point_settings, "flags")
-        if __is_level_point__(bone.name):
+        if is_level_point(bone.name):
             layout.prop(point_settings, "unlocked_levels")
             layout.prop(point_settings, "unlocked_bones")
 
@@ -92,19 +92,19 @@ class RouteInfoPointSecretPanel(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context) -> bool:
-        bone = __get_bone__(context)
-        if not __is_defined__(bone):
+        bone = get_bone(context)
+        if not is_defined(bone):
             return False
 
-        return __is_level_point__(bone.name)
+        return is_level_point(bone.name)
 
     def draw(self, context) -> None:
         layout = self.layout
-        if not __is_defined__(layout):
+        if not is_defined(layout):
             return
 
-        bone = __get_bone__(context)
-        if not __is_defined__(bone):
+        bone = get_bone(context)
+        if not is_defined(bone):
             return
 
         layout.use_property_split = True

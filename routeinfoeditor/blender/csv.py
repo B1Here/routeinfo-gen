@@ -1,17 +1,17 @@
-import bpy
-
 import re
 from typing import Literal
 
-from routeinfoeditor.blender.armatureutils import __get_bones__
-from routeinfoeditor.blender.common import __is_defined__, __split_if_contains__
+import bpy
+
+from routeinfoeditor.blender.armatureutils import get_bones
+from routeinfoeditor.blender.common import is_defined, split_if_contains
 from routeinfoeditor.csvgen.abstractcsvgen import AbstractCsvGen
 from routeinfoeditor.csvgen.pointgen import PointCsvGen
 from routeinfoeditor.csvgen.routegen import RouteCsvGen
 from routeinfoeditor.nsmbw.routeinfodata import point_flags
 from routeinfoeditor.nsmbw.routeinfoutils import (
-    __is_flag_point__,
-    __is_level_point__,
+    is_flag_point,
+    is_level_point,
 )
 
 
@@ -45,7 +45,8 @@ class RouteInfoCsvGenOperator(bpy.types.Operator):
 
 
 class RouteInfoDataCleanupOperator(bpy.types.Operator):
-    """Clean up csv column data that is not supposed to be present on specific bones, points and routes"""
+    """Clean up csv column data that is not supposed to be present on specific bones,
+    points and routes"""
 
     bl_idname = "routeinfo.cleanup"
     bl_label = "Cleanup Non-Point Data"
@@ -55,14 +56,14 @@ class RouteInfoDataCleanupOperator(bpy.types.Operator):
     ) -> set[
         Literal["RUNNING_MODAL", "CANCELLED", "FINISHED", "PASS_THROUGH", "INTERFACE"]
     ]:
-        for bone in __get_bones__(context):
+        for bone in get_bones(context):
             point_settings = bone.route_info_point_settings
-            if not __is_level_point__(bone.name):
+            if not is_level_point(bone.name):
                 point_settings.unlocked_levels = ""
                 point_settings.unlocked_bones = ""
                 point_settings.unlocked_levels_secret_exit = ""
                 point_settings.unlocked_bones_secret_exit = ""
-                if not __is_flag_point__(bone.name):
+                if not is_flag_point(bone.name):
                     point_settings.flags = ""
 
         self.report({"INFO"}, "Finished cleaning up RouteInfo data.")
@@ -94,60 +95,66 @@ class RouteInfoValidateOperator(bpy.types.Operator):
         return {"FINISHED"}
 
     def __validate_point_data(self, context: bpy.types.Context) -> int:
-        bones = __get_bones__(context)
-        bone_names = list(map(lambda b: b.name, bones))
+        bones = get_bones(context)
+        bone_names = [b.name for b in bones]
 
         warnings = 0
         # Check that all flags on flag points and level points are valid point flags
         for bone in filter(
-            lambda b: __is_flag_point__(b.name) or __is_level_point__(b.name),
+            lambda b: is_flag_point(b.name) or is_level_point(b.name),
             bones,
         ):
             point_settings = bone.route_info_point_settings
-            for flag in __split_if_contains__(point_settings.flags, ","):
+            for flag in split_if_contains(point_settings.flags, ","):
                 if flag and flag not in point_flags:
                     self.report(
                         {"WARNING"},
-                        f'Bone {bone.name} has a flag "{flag}" that is not a valid point flag.',
+                        f'Bone {bone.name} has a flag "{flag}" that is not a valid'
+                        + "point flag.",
                     )
                     warnings += 1
 
-        # Check that all unlocked levels and bones on level points reference existing bones
-        for bone in filter(lambda b: __is_level_point__(b.name), bones):
+        # Check that all unlocked levels and bones on level points reference
+        #  existing bones
+        for bone in filter(lambda b: is_level_point(b.name), bones):
             point_settings = bone.route_info_point_settings
-            for level in __split_if_contains__(point_settings.unlocked_levels, ","):
+            for level in split_if_contains(point_settings.unlocked_levels, ","):
                 if level and level not in bone_names:
                     self.report(
                         {"WARNING"},
-                        f"Bone {bone.name} has an unlocked level {level} that does not exist.",
+                        f"Bone {bone.name} has an unlocked level {level} that does"
+                        + "not exist.",
                     )
                     warnings += 1
 
-            for bone_name in __split_if_contains__(point_settings.unlocked_bones, ","):
+            for bone_name in split_if_contains(point_settings.unlocked_bones, ","):
                 if bone_name and bone_name not in bone_names:
                     self.report(
                         {"WARNING"},
-                        f"Bone {bone.name} has an unlocked bone {bone_name} that does not exist.",
+                        f"Bone {bone.name} has an unlocked bone {bone_name} that does"
+                        + "not exist.",
                     )
                     warnings += 1
 
-            for level in __split_if_contains__(
+            for level in split_if_contains(
                 point_settings.unlocked_levels_secret_exit, ","
             ):
                 if level and level not in bone_names:
                     self.report(
                         {"WARNING"},
-                        f"Bone {bone.name} has an unlocked secret exit level {level} that does not exist.",
+                        f"Bone {bone.name} has an unlocked secret exit level {level}"
+                        + "that does not exist.",
                     )
                     warnings += 1
 
-            for bone_name in __split_if_contains__(
+            for bone_name in split_if_contains(
                 point_settings.unlocked_bones_secret_exit, ","
             ):
                 if bone_name and bone_name not in bone_names:
                     self.report(
                         {"WARNING"},
-                        f"Bone {bone.name} has an unlocked secret exit bone {bone_name} that does not exist.",
+                        f"Bone {bone.name} has an unlocked secret exit bone {bone_name}"
+                        + " that does not exist.",
                     )
                     warnings += 1
 
@@ -185,7 +192,7 @@ class RouteInfoCsvPanel(bpy.types.Panel):
 
     def draw(self, context) -> None:
         layout = self.layout
-        if not __is_defined__(layout):
+        if not is_defined(layout):
             return
         layout.use_property_split = True
         layout.use_property_decorate = False

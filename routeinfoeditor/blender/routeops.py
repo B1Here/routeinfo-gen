@@ -1,10 +1,10 @@
-import bpy
-
 from typing import Literal
 
-from routeinfoeditor.blender.armatureutils import __get_bones__
-from routeinfoeditor.blender.common import __is_defined__
-from routeinfoeditor.nsmbw.routeinfoutils import __is_point__
+import bpy
+
+from routeinfoeditor.blender.armatureutils import get_bones
+from routeinfoeditor.blender.common import is_defined
+from routeinfoeditor.nsmbw.routeinfoutils import is_point
 
 
 class RouteInfoRouteMoveUpOperator(bpy.types.Operator):
@@ -17,7 +17,7 @@ class RouteInfoRouteMoveUpOperator(bpy.types.Operator):
         Literal["RUNNING_MODAL", "CANCELLED", "FINISHED", "PASS_THROUGH", "INTERFACE"]
     ]:
         armature = context.armature
-        if not __is_defined__(armature):
+        if not is_defined(armature):
             self.report({"ERROR"}, "No armature found")
             return {"CANCELLED"}
         route_settings = armature.route_info_route_settings
@@ -38,7 +38,7 @@ class RouteInfoRouteMoveDownOperator(bpy.types.Operator):
         Literal["RUNNING_MODAL", "CANCELLED", "FINISHED", "PASS_THROUGH", "INTERFACE"]
     ]:
         armature = context.armature
-        if not __is_defined__(armature):
+        if not is_defined(armature):
             self.report({"ERROR"}, "No armature found")
             return {"CANCELLED"}
         route_settings = armature.route_info_route_settings
@@ -59,15 +59,16 @@ class RouteInfoRouteRefreshOperator(bpy.types.Operator):
         Literal["RUNNING_MODAL", "CANCELLED", "FINISHED", "PASS_THROUGH", "INTERFACE"]
     ]:
         armature = context.armature
-        if not __is_defined__(armature):
+        if not is_defined(armature):
             self.report({"ERROR"}, "No armature found")
             return {"CANCELLED"}
         route_settings = armature.route_info_route_settings
 
-        bones = __get_bones__(context)
+        bones = get_bones(context)
         new_route_names = self._fetch_names(bones)
 
-        # Keep routes where both bones still exist, remove routes where either bone doesn't exist, and add routes for new bone pairs
+        # Keep routes where both bones still exist, remove routes where either bone
+        # doesn't exist, and add routes for new bone pairs
         idicies_to_remove = []
         for i in range(len(route_settings.routes)):
             route = route_settings.routes[i]
@@ -76,7 +77,7 @@ class RouteInfoRouteRefreshOperator(bpy.types.Operator):
 
         for i in reversed(idicies_to_remove):
             route_settings.routes.remove(i)
-        bones = __get_bones__(context)
+        bones = get_bones(context)
         existing_route_names = {route.name for route in route_settings.routes}
 
         if bones:
@@ -95,8 +96,8 @@ class RouteInfoRouteRefreshOperator(bpy.types.Operator):
         for bone in bones:
             if (
                 bone.name.startswith("R")
-                and __is_point__(bone.name[1:5])
-                and __is_point__(bone.name[5:9])
+                and is_point(bone.name[1:5])
+                and is_point(bone.name[5:9])
             ):
                 route_bones.append(bone)
 
@@ -110,9 +111,9 @@ class RouteInfoRouteRefreshOperator(bpy.types.Operator):
         self, bone: bpy.types.Bone, route_names: list[str]
     ) -> None:
         if (
-            __is_defined__(bone.children)
+            is_defined(bone.children)
             and len(bone.children) > 0
-            and filter(lambda child: __is_point__(child.name), bone.children)
+            and filter(lambda child: is_point(child.name), bone.children)
         ):
             self.__add_route_via_child(bone, route_names)
             return
@@ -121,7 +122,7 @@ class RouteInfoRouteRefreshOperator(bpy.types.Operator):
     def __add_route_via_child(
         self, bone: bpy.types.Bone, route_names: list[str]
     ) -> None:
-        if not __is_defined__(bone.children) or len(bone.children) == 0:
+        if not is_defined(bone.children) or len(bone.children) == 0:
             return
         bone_name = bone.name
         if bone_name.startswith("R"):
@@ -138,7 +139,7 @@ class RouteInfoRouteRefreshOperator(bpy.types.Operator):
                 route_names.append(f"R{last_child.name}{bone.name[5:9]}")
 
     def __get_last_point_child(self, bone: bpy.types.Bone) -> bpy.types.Bone:
-        if not __is_defined__(bone.children) or len(bone.children) == 0:
+        if not is_defined(bone.children) or len(bone.children) == 0:
             return bone
         return self.__get_last_point_child(bone.children[0])
 
@@ -153,7 +154,7 @@ class RouteInfoRouteSelectBonesOperator(bpy.types.Operator):
         Literal["RUNNING_MODAL", "CANCELLED", "FINISHED", "PASS_THROUGH", "INTERFACE"]
     ]:
         armature = context.armature
-        if not __is_defined__(armature) or not __is_defined__(context.object):
+        if not is_defined(armature) or not is_defined(context.object):
             self.report({"ERROR"}, "No armature found")
             return {"CANCELLED"}
         route_settings = armature.route_info_route_settings
